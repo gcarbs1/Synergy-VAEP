@@ -4,3 +4,8 @@ data/
 # Python virtual environments
 venv/
 .venv/
+
+# Local/editor caches
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
