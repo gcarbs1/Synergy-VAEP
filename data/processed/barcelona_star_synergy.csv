@@ -1,0 +1,33 @@
+star,teammate,offensive_synergy,focal_impact_p90,minutes_together,minutes_together_rounded_200,minutes_proxy,proxy,source,ring_angle
+Messi,Rakitić,1.271,0.017,2046.1,2000,475.433,Munir,notebook_01_output,60.0
+Messi,Piqué,1.254,0.097,2009.067,2000,642.283,Munir,notebook_01_output,150.0
+Messi,Mathieu,0.96,0.037,874.367,800,437.4,Munir,notebook_01_output,240.0
+Messi,Jordi Alba,0.947,0.066,2059.2,2000,603.233,Munir,notebook_01_output,270.0
+Messi,Sergi Roberto,0.94,-0.05,1390.683,1400,582.867,Munir,notebook_01_output,90.0
+Messi,Mascherano,0.92,-0.066,2369.85,2400,405.9,Rakitić,notebook_01_output,210.0
+Messi,Busquets,0.811,-0.128,2277.95,2200,696.183,Munir,notebook_01_output,180.0
+Messi,Dani Alves,0.727,0.032,1754.933,1800,447.233,Munir,notebook_01_output,120.0
+Messi,Suárez,0.507,-0.436,2528.967,2600,712.55,Munir,notebook_01_output,0.0
+Messi,Munir,0.229,0.497,508.033,600,274.967,Neymar,notebook_01_output,30.0
+Messi,Neymar,0.099,-0.952,2424.983,2400,712.55,Munir,notebook_01_output,330.0
+Messi,Iniesta,0.064,-0.305,2018.45,2000,287.05,Rakitić,notebook_01_output,300.0
+Neymar,Suárez,0.9,,,2800,,,poster_2026_11_labels,343.1
+Neymar,Jordi Alba,0.66,,,2400,,,poster_2026_11_labels,253.1
+Neymar,Dani Alves,0.46,,,2000,,,poster_2026_11_labels,118.1
+Neymar,Iniesta,0.46,,,2000,,,poster_2026_11_labels,298.1
+Neymar,Rakitić,0.45,,,2400,,,poster_2026_11_labels,73.1
+Neymar,Busquets,0.25,,,2600,,,poster_2026_11_labels,163.1
+Neymar,Mascherano,0.19,,,2400,,,poster_2026_11_labels,208.1
+Neymar,Messi,-0.08,,,1600,,,poster_2026_11_labels,28.1
+Munir,Messi,0.34,,,600,,,poster_2026_11_labels,30.0
+Munir,Iniesta,-0.02,,,200,,,poster_2026_11_labels,300.0
+Munir,Mascherano,-0.25,,,600,,,poster_2026_11_labels,240.0
+Munir,Neymar,-0.4,,,600,,,poster_2026_11_labels,330.0
+Munir,Dani Alves,-0.46,,,600,,,poster_2026_11_labels,90.0
+Munir,Suárez,-0.47,,,600,,,poster_2026_11_labels,0.0
+Munir,Jordi Alba,-0.48,,,600,,,poster_2026_11_labels,270.0
+Munir,Busquets,-0.52,,,600,,,poster_2026_11_labels,180.0
+Munir,Sergi Roberto,-0.74,,,600,,,poster_2026_11_labels,120.0
+Munir,Piqué,-0.78,,,600,,,poster_2026_11_labels,150.0
+Munir,Mathieu,-0.78,,,400,,,poster_2026_11_labels,210.0
+Munir,Rakitić,-0.83,,,600,,,poster_2026_11_labels,60.0

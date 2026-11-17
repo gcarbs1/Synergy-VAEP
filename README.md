@@ -16,6 +16,7 @@ Collects StatsBomb Open Data events from four major European leagues in 2015/201
 - `data/raw/`: matches (`matches/`), events (`events/`), and combined tables (`combined/`).
 - `data/processed/`: actions with VAEP, segments, proxies, synergies, and rankings.
 - `viz/`: figures produced by notebook 01.
+- `poster/make_poster.py`: the poster on Messi, Neymar and Munir (`poster/output/`), with DM Serif Display and IBM Plex Sans Condensed (`poster/fonts/`, OFL).
 
 ## Setup
 
@@ -27,6 +28,12 @@ python -m pip install -r requirements.txt
 
 Run the notebooks in order. The collection reuses files already on disk and can be resumed.
 
+The poster only needs the versioned table `data/processed/barcelona_star_synergy.csv`:
+
+```bash
+.venv/bin/python poster/make_poster.py
+```
+
 ## Outputs
 
 | file or folder | content |
@@ -37,4 +44,10 @@ Run the notebooks in order. The collection reuses files already on disk and can 
 | `data/processed/directed_synergy_full.parquet` | directed relations with offensive and defensive synergy |
 | `data/processed/player_offensive_synergy_ranking.csv` | offensive ranking by player |
 | `data/processed/player_defensive_synergy_ranking.csv` | defensive ranking by player |
+| `data/processed/barcelona_star_synergy.csv` | the 32 pairs on the poster: synergy with Messi, Neymar and Munir, minutes together and ring angle |
 | `viz/` | pairs, rankings, and VAEP summaries |
+
+## Poster data
+
+`barcelona_star_synergy.csv` is the only processed table kept in the repository. The Messi rows (synergy, change in the teammate's own output, minutes together and with the replacement) are the exact values printed by notebook 01 in section 18.1. The Neymar and Munir rows come from the first version of the poster: synergy to two decimals and minutes together rounded to 200, read from its petals. `ring_angle` keeps the original order of teammates by position, clockwise from the top.
+
