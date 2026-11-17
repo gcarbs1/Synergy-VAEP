@@ -102,17 +102,25 @@ def polar(r, th):
     return np.array([r * np.cos(th), r * np.sin(th)])
 
 
-def petal_outline(th, signed_len, half_angle, n=60):
-    """Leaf from the zero ring: outward when signed_len > 0, inward when < 0."""
+def petal_profile(t):
+    """Half-width along the petal, 0 at the ring and 1 at the tip: a teardrop with a narrow base,
+    widest a little past the middle and a rounded tip."""
+    width = 0.3 + 0.7 * np.sin(np.pi * np.clip(t, 0, 1) ** 0.85) ** 0.75
+    return width * np.sqrt(np.clip(1 - t ** 4, 0, 1))
+
+
+def petal_outline(th, signed_len, half_angle, n=90):
+    """Petal from the zero ring: outward when signed_len > 0, inward when < 0."""
     t = np.linspace(0, 1, n)
     r = Z + signed_len * t
-    h = half_angle * (1 - t) ** 0.62
+    h = half_angle * petal_profile(t)
     if signed_len < 0:
-        # Towards the centre the same angle covers less arc; widen it so the leaf keeps its shape.
+        # Towards the centre the same angle covers less arc; widen it so the petal keeps its shape.
         h = h * (Z / np.maximum(r, 0.08)) ** 0.85
     right = np.c_[r * np.cos(th - h), r * np.sin(th - h)]
     left = np.c_[r * np.cos(th + h), r * np.sin(th + h)][::-1]
-    a = np.linspace(th + half_angle, th - half_angle, 20)
+    h0 = half_angle * petal_profile(np.array([0.0]))[0]
+    a = np.linspace(th + h0, th - h0, 20)
     base = np.c_[Z * np.cos(a), Z * np.sin(a)]
     return np.vstack([base, right, left])
 
