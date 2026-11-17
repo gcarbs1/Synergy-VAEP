@@ -1,9 +1,8 @@
 """Dark landscape poster: offensive synergy of Messi, Neymar and Munir at Barcelona, 2015/16.
 
-Each teammate is a petal around the central player. The ring is zero.
-Petal length = synergy of the pair, outward if positive, inward if negative:
+Each teammate is a stroke of light around the central player. The ring is zero.
+Stroke length = synergy of the pair, outward if positive, inward if negative:
     synergy(A, B) = VAEP90(A + B together) - VAEP90(A + B's replacement).
-Each nested line of a petal = 200 minutes the pair played together.
 
 Reads data/processed/barcelona_star_synergy.csv (the README explains where each column comes from).
 Run from the repository root:  .venv/bin/python poster/make_poster.py
@@ -15,6 +14,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import font_manager as fm
 from matplotlib import patheffects as pe
+from matplotlib.collections import LineCollection
 from matplotlib.colors import LinearSegmentedColormap, to_rgb
 
 def n2(v):
@@ -53,7 +53,6 @@ plt.rcParams.update({"font.family": SANS, "text.color": INK, "pdf.fonttype": 42,
 PLAYERS = ["Messi", "Neymar", "Munir"]
 Z = 0.58             # radius of the zero ring
 K = 0.58              # radius units per 1 VAEP per 90
-MIN_PER_LINE = 200   # minutes together represented by each nested line
 
 
 # Pairs need 300 minutes together and 180 with the replacement (filter applied upstream).
@@ -74,8 +73,6 @@ def ring(data, star):
     d = data[data.star.eq(star)].copy()
     d["name"] = d.teammate
     d["synergy"] = d.offensive_synergy
-    minutes = d.minutes_together.fillna(d.minutes_together_rounded_200)
-    d["minutes"] = minutes
     d["theta"] = np.radians(90 - d.ring_angle)
     return d.reset_index(drop=True)
 
@@ -102,44 +99,18 @@ def polar(r, th):
     return np.array([r * np.cos(th), r * np.sin(th)])
 
 
-def petal_profile(t):
-    """Half-width along the petal, 0 at the ring and 1 at the tip: a teardrop with a narrow base,
-    widest a little past the middle and a rounded tip."""
-    width = 0.3 + 0.7 * np.sin(np.pi * np.clip(t, 0, 1) ** 0.85) ** 0.75
-    return width * np.sqrt(np.clip(1 - t ** 4, 0, 1))
-
-
-def petal_outline(th, signed_len, half_angle, n=90):
-    """Petal from the zero ring: outward when signed_len > 0, inward when < 0."""
-    t = np.linspace(0, 1, n)
-    r = Z + signed_len * t
-    h = half_angle * petal_profile(t)
-    if signed_len < 0:
-        # Towards the centre the same angle covers less arc; widen it so the petal keeps its shape.
-        h = h * (Z / np.maximum(r, 0.08)) ** 0.85
-    right = np.c_[r * np.cos(th - h), r * np.sin(th - h)]
-    left = np.c_[r * np.cos(th + h), r * np.sin(th + h)][::-1]
-    h0 = half_angle * petal_profile(np.array([0.0]))[0]
-    a = np.linspace(th + h0, th - h0, 20)
-    base = np.c_[Z * np.cos(a), Z * np.sin(a)]
-    return np.vstack([base, right, left])
-
-
-def petal(ax, th, synergy, minutes, half_angle):
+def stroke(ax, th, synergy):
+    """A ray from the zero ring that thickens and brightens towards its tip."""
     signed = K * synergy
-    positive = synergy >= 0
-    cmap = PETAL_POS if positive else PETAL_NEG
-    # Inward petals share less room near the centre, so they are drawn narrower.
-    half_angle = half_angle if positive else half_angle * 0.55
-    n_lines = max(1, int(round(minutes / MIN_PER_LINE)))
-    outer = petal_outline(th, signed, half_angle)
-    ax.fill(outer[:, 0], outer[:, 1], color=cmap(0.9), alpha=0.07 if positive else 0.12, lw=0,
-            zorder=2.5)
-    for k in range(1, n_lines + 1):
-        f = k / n_lines
-        xy = petal_outline(th, signed * f, half_angle * (0.35 + 0.65 * f))
-        ax.plot(xy[:, 0], xy[:, 1], color=cmap(0.15 + 0.85 * f), lw=0.5 if k < n_lines else 1.0,
-                alpha=0.5 + 0.5 * f, zorder=3 + f, solid_joinstyle="round")
+    cmap = PETAL_POS if synergy >= 0 else PETAL_NEG
+    t = np.linspace(0, 1, 48)
+    r = Z + signed * t
+    pts = np.c_[r * np.cos(th), r * np.sin(th)]
+    segs = np.stack([pts[:-1], pts[1:]], axis=1)
+    ax.plot(pts[:, 0], pts[:, 1], color=cmap(1.0), lw=6, alpha=0.06, solid_capstyle="round", zorder=2.5)
+    ax.add_collection(LineCollection(segs, colors=[cmap(0.2 + 0.8 * v) for v in t[1:]],
+                                     linewidths=0.7 + 2.5 * t[1:], capstyle="round", zorder=3))
+    ax.scatter([pts[-1, 0]], [pts[-1, 1]], s=20, color=cmap(1.0), lw=0, zorder=4)
     return Z + max(signed, 0)
 
 
@@ -190,10 +161,9 @@ def sun(fig, rect, d, player):
     t = np.linspace(0, 2 * np.pi, 400)
     ax.fill(Z * np.cos(t), Z * np.sin(t), color=DISK, lw=0, zorder=1)
     ax.plot(Z * np.cos(t), Z * np.sin(t), color=SAND, lw=0.8, zorder=2)
-    half = np.pi / len(d) * 0.78
     groups = []
     for row in d.itertuples():
-        r_out = petal(ax, row.theta, row.synergy, row.minutes, half)
+        r_out = stroke(ax, row.theta, row.synergy)
         rl = r_out + 0.06
         groups.append({"artists": label(ax, row.theta, rl, row.name, fmt(row.synergy)), "r": rl, "th": row.theta})
     repel(fig, groups)
@@ -218,7 +188,7 @@ def main():
     fig.text(L, 0.862,
              "Messi, Neymar and Munir at Barcelona, La Liga 2015/16, in VAEP per 90 minutes. For each teammate, synergy "
              "compares the pair's output with the player\non the pitch and with his replacement. The ring marks zero: "
-             "petals pointing outward show positive synergy, petals pointing inward show negative synergy.",
+             "strokes pointing outward show positive synergy, strokes pointing inward show negative synergy.",
              fontsize=12, color=INK_2, va="top", linespacing=1.55)
 
     w = 0.27
@@ -230,27 +200,26 @@ def main():
     top = 0.205
     fig.add_artist(plt.Line2D([L, R], [top + 0.02, top + 0.02], color=RULE, lw=0.8))
 
-    # reading a petal
-    fig.text(L, top, "READING A PETAL", fontsize=8.8, weight="semibold", color=INK, va="top")
+    # reading a stroke
+    fig.text(L, top, "READING A STROKE", fontsize=8.8, weight="semibold", color=INK, va="top")
     ak = fig.add_axes([L, top - 0.175, 0.27, 0.15]); ak.set_xlim(0.05, 2.75); ak.set_ylim(-0.55, 0.55); ak.axis("off")
     th = 0.0
-    tip = petal(ak, th, 1.1, 1600, 0.36)
+    tip = stroke(ak, th, 1.1)
     arc = np.linspace(-0.6, 0.6, 60)
     ak.plot(Z * np.cos(arc), Z * np.sin(arc), color=SAND, lw=0.8, zorder=4)
     ak.annotate("length = synergy of the pair", (tip, 0.0), xytext=(tip + 0.1, 0.0), fontsize=8.6, color=INK_2,
                 va="center", ha="left")
-    ak.annotate("each line = 200 minutes\nthe pair played together", (Z + K * 0.7, -0.08), xytext=(Z + K * 1.25, -0.42),
-                fontsize=8.2, color=INK_3, ha="left", va="center", linespacing=1.3,
-                arrowprops=dict(arrowstyle="-", color=INK_3, lw=0.6, shrinkA=2, shrinkB=1))
+    ak.text(Z * np.cos(-0.6), Z * np.sin(-0.6) - 0.04, "inward = negative", fontsize=7.6, color=INK_3,
+            ha="left", va="top")
     ak.text(Z * np.cos(0.6), Z * np.sin(0.6) + 0.04, "ring = zero", fontsize=7.6, color=INK_3, ha="left",
             va="bottom")
 
-    # one petal, step by step
+    # one stroke, step by step
     ex = data[data.star.eq("Messi") & data.teammate.eq("Busquets")].iloc[0]
     (a_w, b_w), (a_o, b_o) = EXAMPLE["with_star"], EXAMPLE["with_replacement"]
     synergy, lift = ex.offensive_synergy, ex.focal_impact_p90
     x_steps = 0.375
-    fig.text(x_steps, top, "COMPUTING ONE PETAL:  BUSQUETS AND MESSI, VAEP PER 90 MINUTES", fontsize=8.5,
+    fig.text(x_steps, top, "COMPUTING ONE STROKE:  BUSQUETS AND MESSI, VAEP PER 90 MINUTES", fontsize=8.5,
              weight="semibold", color=INK, va="top")
     steps = [
         ("Busquets + Messi", f"{n2(a_w)} + {n2(b_w)} = {n2(a_w + b_w)}"),
